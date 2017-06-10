@@ -16,6 +16,8 @@
 # * add execption:  NoValueToReport exception.  this exception is thrown
 #                   when the callback does not want a value sent to the
 #                   blynk server
+# Changes 6/10/2017
+# * all user tasks to run without being authenticated with blynk server
 # TODO
 # * all for run to be async in the background
 
@@ -168,14 +170,17 @@ class HwPin:
 
 
 class UserTask:
-    def __init__(self, task_handler, period_in_seconds, blynk_ref, initial_state=None):
+    def __init__(self, task_handler, period_in_seconds, blynk_ref, initial_state=None, authenticated=True):
         self.task_handler = task_handler
         self.period_in_seconds = period_in_seconds if period_in_seconds > 0 else 1
         self.task_state = initial_state if initial_state is not None else {}
         self.blynk_ref = blynk_ref
+        # True - then only run UserTask if we have authenticated the blynk app
+        # False - run the user task regardless of authenticated status
+        self.authenticated = authenticated
 
     def run_task(self):
-        if self.task_handler and self.blynk_ref.state == AUTHENTICATED:
+        if self.task_handler and (self.authenticated == False or (self.authenticated == True and self.blynk_ref.state == AUTHENTICATED)):
             self.task_handler(self.task_state, self.blynk_ref)
 
         the_timer = threading.Timer(self.period_in_seconds, self.run_task)
@@ -467,7 +472,7 @@ class Blynk:
     def on_connect(self, func):
         self._on_connect = func
 
-    def add_user_task(self, task, second_period, initial_state=None):
+    def add_user_task(self, task, second_period, initial_state=None, authenticated=True):
         """
         Add a user defined task to be called every 'second_period' seconds.
         Each user task runs in its own thread and it is up to the tasks
@@ -478,7 +483,7 @@ class Blynk:
         :param task_state: initial task state
         :return: None
         """
-        self.user_tasks.append(UserTask(task, second_period, self, initial_state))
+        self.user_tasks.append(UserTask(task, second_period, self, initial_state, authenticated))
 
     def connect(self):
         self._do_connect = True
