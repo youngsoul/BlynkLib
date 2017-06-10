@@ -255,3 +255,17 @@ This test uses the Blynk Generic board and accesses an analog read
 ### OmegaBlynkType.py
 This test uses the Onion Omega board and accesses a number of the interfaces.
 
+
+Changes
+-------
+
+### May 2017
+* Added NoValueToReport exception.  If a read handler has no value to report back, 
+then throwing a NoValueToReport exception will cause BlynkLib to just ignore it.
+
+### June 2017
+* Added authenticated flag to UserTask. 
+True - user task can only run if the application is authenticated with Blynk server
+False - user task can run without being authenticated.  Useful for background
+      activities
+      

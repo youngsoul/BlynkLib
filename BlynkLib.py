@@ -12,6 +12,10 @@
 # * add 'add_user_task' method to add as many user tasks as desired.  Each user task runs in its own thread
 # * remove 'set_user_task' method in favor of add_user_task
 #
+# Changes: 5/22/2017
+# * add execption:  NoValueToReport exception.  this exception is thrown
+#                   when the callback does not want a value sent to the
+#                   blynk server
 # TODO
 # * all for run to be async in the background
 
@@ -128,6 +132,8 @@ AUTHENTICATED = 3
 
 EAGAIN = const(11)
 
+class NoValueToReport(Exception):
+    pass
 
 def now_in_ms():
     millis = int(round(time.time() * 1000))
@@ -255,8 +261,14 @@ class Blynk:
         elif cmd == 'vr':
             pin = int(params.pop(0))
             if pin in self._vr_pins and self._vr_pins[pin].read:
-                val = self._vr_pins[pin].read(pin, self._vr_pins[pin].state, self._vr_pins[pin].blynk_ref)
-                self.virtual_write(pin, val)
+                try:
+                    val = self._vr_pins[pin].read(pin, self._vr_pins[pin].state, self._vr_pins[pin].blynk_ref)
+                    self.virtual_write(pin, val)
+                except NoValueToReport as nvtr:
+                    pass
+                except Exception as exc:
+                    logging.getLogger().error("Exception in read handler: {}".format(exc))
+
             else:
                 logging.getLogger().warn("Warning: Virtual read from unregistered pin %d" % pin)
         elif self._pins_configured:
@@ -286,8 +298,13 @@ class Blynk:
                 pin = int(params.pop(0))
                 if pin in self._digital_hw_pins:
                     if self._digital_hw_pins[pin].read is not None:
-                        val = self._digital_hw_pins[pin].read(pin, self._digital_hw_pins[pin].state, self._digital_hw_pins[pin].blynk_ref)
-                        self._send(self._format_msg(MSG_HW, 'dw', pin, val))
+                        try:
+                            val = self._digital_hw_pins[pin].read(pin, self._digital_hw_pins[pin].state, self._digital_hw_pins[pin].blynk_ref)
+                            self._send(self._format_msg(MSG_HW, 'dw', pin, val))
+                        except NoValueToReport as nvtr:
+                            pass
+                        except Exception as exc:
+                            logging.getLogger().error("Error in digital read handler: {}".format(exc))
                     else:
                         logging.getLogger().warn("Warning: Hardware pin: {} is setup, but has no digital 'read' callback.".format(pin))
                 else:
@@ -297,8 +314,13 @@ class Blynk:
                 pin = int(params.pop(0))
                 if pin in self._analog_hw_pins:
                     if self._analog_hw_pins[pin].read is not None:
-                        val = self._analog_hw_pins[pin].read(pin, self._analog_hw_pins[pin].state, self._analog_hw_pins[pin].blynk_ref)
-                        self._send(self._format_msg(MSG_HW, 'aw', pin, val))
+                        try:
+                            val = self._analog_hw_pins[pin].read(pin, self._analog_hw_pins[pin].state, self._analog_hw_pins[pin].blynk_ref)
+                            self._send(self._format_msg(MSG_HW, 'aw', pin, val))
+                        except NoValueToReport as nvtr:
+                            pass
+                        except Exception as exc:
+                            logging.getLogger().error("Error in analog read callback: {}".format(exc))
                     else:
                         logging.getLogger().warn("Warning: Hardware pin: {} is setup, but has no analog 'read' callback.".format(pin))
                 else:
