@@ -481,6 +481,9 @@ class Blynk:
         :param task: callback function of the form: user_task(task_state, blynk_ref)
         :param second_period: number of seconds between calls
         :param task_state: initial task state
+        :param authenticated: True - wait for the application to be authenticated, before
+                        allowing the user task to run.
+                      False - allow the task to run regardless of authentication
         :return: None
         """
         self.user_tasks.append(UserTask(task, second_period, self, initial_state, authenticated))
