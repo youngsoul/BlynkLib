@@ -382,7 +382,7 @@ class Blynk:
         self.state = DISCONNECTED
         time.sleep(RECONNECT_DELAY)
         if emsg:
-            logging.getLogger().error('Error: %s, connection closed' % emsg)
+            logging.getLogger().info('Error: %s, connection closed' % emsg)
 
     def _server_alive(self):
         c_time = int(time.time())
@@ -495,6 +495,19 @@ class Blynk:
         self._do_connect = False
 
     def run(self):
+        """
+        Run the Blynk client in a blocking mode, catching and eating
+        exceptions.  Upon an exception, the Blynk client will sleep
+        for 2 seconds and then call the internal _run method again.
+        :return:
+        """
+        while True:
+            try:
+                self._run()
+            except:
+                time.sleep(2)
+
+    def _run(self):
         """
         Run the Blynk client in a blocking mode
         :return:

@@ -259,13 +259,20 @@ This test uses the Onion Omega board and accesses a number of the interfaces.
 Changes
 -------
 
-### May 2017
-* Added NoValueToReport exception.  If a read handler has no value to report back, 
-then throwing a NoValueToReport exception will cause BlynkLib to just ignore it.
+### June 24 2017
+* change the run method to include a try/catch if any exception happens
+in the run method.  If an exception occurs, this client will sleep 2 
+seconds and try the run method again.  The goal is to not unexpectedly
+exit the run method.
 
-### June 2017
+### June 5 2017
 * Added authenticated flag to UserTask. 
 True - user task can only run if the application is authenticated with Blynk server
 False - user task can run without being authenticated.  Useful for background
       activities
+
+### May 2017
+* Added NoValueToReport exception.  If a read handler has no value to report back, 
+then throwing a NoValueToReport exception will cause BlynkLib to just ignore it.
+
       
